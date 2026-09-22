@@ -26,10 +26,20 @@ jobs:
       - name: Sestavení MSI instalátoru
         run: dotnet build installer.wixproj -c Release -p:Platform=x64
 
+      - name: Generování kontrolního součtu SHA-256
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter "DartsCounter.msi" | ForEach-Object {
+            $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLower()
+            Set-Content -Path "$($_.FullName).sha256" -Value "$hash  DartsCounter.msi"
+          }
+
       - name: Nahrát soubor do GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          files: "**/DartsCounter.msi"
+          files: |
+            **/DartsCounter.msi
+            **/DartsCounter.msi.sha256
 
   build-mac:
     runs-on: macos-latest
@@ -47,10 +57,15 @@ jobs:
       - name: Vytvoření DMG obrazu
         run: hdiutil create -volname "DartsCounter" -srcfolder DartsCounter.app -ov -format UDZO DartsCounter.dmg
 
+      - name: Generování kontrolního součtu SHA-256
+        run: shasum -a 256 DartsCounter.dmg > DartsCounter.dmg.sha256
+
       - name: Nahrát soubor do GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          files: DartsCounter.dmg
+          files: |
+            DartsCounter.dmg
+            DartsCounter.dmg.sha256
 
   build-linux:
     runs-on: ubuntu-latest
@@ -90,7 +105,12 @@ jobs:
           chmod +x appimagetool
           ./appimagetool --appimage-extract-and-run AppDir DartsCounter.AppImage
 
+      - name: Generování kontrolního součtu SHA-256
+        run: sha256sum DartsCounter.AppImage > DartsCounter.AppImage.sha256
+
       - name: Nahrát soubor do GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          files: DartsCounter.AppImage
+          files: |
+            DartsCounter.AppImage
+            DartsCounter.AppImage.sha256
