@@ -120,17 +120,17 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void PlayMenuItem_OnClick(object? sender, RoutedEventArgs e)
+    private void PlayMenuItem_OnClick(object? sender, RoutedEventArgs e)
     {
         if (SoundManagerDarts.SoundEffects.IsMusicPlaying)
         {
-            await SoundManagerDarts.SoundEffects.StopPlayer();
+            _ = SoundManagerDarts.SoundEffects.StopPlayer();
             SoundManagerDarts.SoundEffects.IsMusicPlaying = false;
         }
         else
         {
             
-            await SoundManagerDarts.SoundEffects.PlayDartsSong();
+            _ = SoundManagerDarts.SoundEffects.PlayDartsSong();
             SoundManagerDarts.SoundEffects.IsMusicPlaying = true;
         }
     }
