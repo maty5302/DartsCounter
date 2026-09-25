@@ -1,73 +1,99 @@
-﻿using Newtonsoft.Json;
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace Domain
 {
-	public static class GithubIntegration
-	{
-		public static async Task<string> GetLatestRelease()
-		{
-			using (HttpClient client = new HttpClient())
-			{
-				string apiUrl = $"https://api.github.com/repos/maty5302/DartsCounter/releases/latest";
+    public sealed class GitHubReleaseDto
+    {
+        [JsonPropertyName("tag_name")]
+        public string? TagName { get; set; }
 
-				client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        [JsonPropertyName("body")]
+        public string? Body { get; set; }
+    }
 
-				client.DefaultRequestHeaders.UserAgent.TryParseAdd("request");
+    public static class GithubIntegration
+    {
+        private static readonly HttpClient _httpClient = CreateHttpClient();
 
-				var response = await client.GetAsync(apiUrl);
-				response.EnsureSuccessStatusCode();
+        private static HttpClient CreateHttpClient()
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.UserAgent.TryParseAdd("DartsCounter-App");
+            return client;
+        }
 
-				string responseJson = await response.Content.ReadAsStringAsync();
-				dynamic? responseObject = JsonConvert.DeserializeObject(responseJson);
+        public static async Task<string> GetLatestRelease()
+        {
+            try
+            {
+                const string apiUrl = "https://api.github.com/repos/maty5302/DartsCounter/releases/latest";
+                using var response = await _httpClient.GetAsync(apiUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return string.Empty;
+                }
 
-				string latestRelease = responseObject?.tag_name + "\n" + responseObject?.body ?? "";
+                string responseJson = await response.Content.ReadAsStringAsync();
+                var release = JsonSerializer.Deserialize<GitHubReleaseDto>(responseJson);
 
-				return latestRelease;
-			}
-		}
+                return (release?.TagName ?? "") + "\n" + (release?.Body ?? "");
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
 
-		public static async Task<string> GetGitVersion()
-		{
-			using (HttpClient client = new HttpClient())
-			{
-				string apiUrl = $"https://api.github.com/repos/maty5302/DartsCounter/releases/latest";
+        public static async Task<string> GetGitVersion()
+        {
+            try
+            {
+                const string apiUrl = "https://api.github.com/repos/maty5302/DartsCounter/releases/latest";
+                using var response = await _httpClient.GetAsync(apiUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return string.Empty;
+                }
 
-				client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                string responseJson = await response.Content.ReadAsStringAsync();
+                var release = JsonSerializer.Deserialize<GitHubReleaseDto>(responseJson);
 
-				client.DefaultRequestHeaders.UserAgent.TryParseAdd("request");
-
-				HttpResponseMessage response = await client.GetAsync(apiUrl);
-				response.EnsureSuccessStatusCode();
-
-				string responseJson = await response.Content.ReadAsStringAsync();
-				dynamic? responseObject = JsonConvert.DeserializeObject(responseJson);
-
-				string latestRelease = responseObject?.tag_name ?? "";
-
-				return latestRelease;
-			}
-		}
+                return release?.TagName ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
         
         public static async Task<string> GetReleaseNotes(string version)
         {
-            using (HttpClient client = new HttpClient())
+            try
             {
-                string apiUrl = $"https://api.github.com/repos/maty5302/DartsCounter/releases/tags/{version}";
+                string encodedVersion = Uri.EscapeDataString(version);
+                string apiUrl = $"https://api.github.com/repos/maty5302/DartsCounter/releases/tags/{encodedVersion}";
 
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-                client.DefaultRequestHeaders.UserAgent.TryParseAdd("request");
-
-                var response = await client.GetAsync(apiUrl);
-                response.EnsureSuccessStatusCode();
+                using var response = await _httpClient.GetAsync(apiUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return string.Empty;
+                }
 
                 string responseJson = await response.Content.ReadAsStringAsync();
-                dynamic? responseObject = JsonConvert.DeserializeObject(responseJson);
+                var release = JsonSerializer.Deserialize<GitHubReleaseDto>(responseJson);
 
-                string releaseNotes = responseObject?.body ?? "";
-
-                return releaseNotes;
+                return release?.Body ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 
@@ -101,5 +127,5 @@ namespace Domain
                 return false;
             }
         }
-	}
+    }
 }

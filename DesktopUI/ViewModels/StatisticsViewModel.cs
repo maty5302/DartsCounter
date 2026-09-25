@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Domain.Interfaces;
 using Domain.Models;
+using MsBox.Avalonia.Enums;
 
 namespace DesktopUI.ViewModels;
 
@@ -251,39 +252,68 @@ public partial class StatisticsViewModel : ObservableObject
                 if (!File.Exists(oldDbPath))
                     return;
 
-                string connectionString = $"Data Source={oldDbPath}";
-
-                using var connection = new SqliteConnection(connectionString);
-                await connection.OpenAsync();
-
-                var command = connection.CreateCommand();
-                command.CommandText = @"SELECT Name, Wins, Average, highestOut, sixty, hundred, hundred20, hundred80 FROM PlayerSettings";
-
-                using var reader = await command.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
+                try
                 {
-                    string name = reader.GetString(0);
-                    
-                    var newPlayer = await _repository.CreatePlayerAsync(name);
-                    if (newPlayer == null) continue;
-                    
-                    var playerStats = new PlayerStatsDto
+                    var builder = new SqliteConnectionStringBuilder
                     {
-                        PlayerId = newPlayer.Id,
-                        Year = DateTime.Now.Year,
-                        Wins = reader.GetInt32(1),
-                        Average = reader.GetDouble(2),
-                        HighestOut = reader.GetInt32(3),
-                        Sixty = reader.GetInt32(4),
-                        Hundred = reader.GetInt32(5),
-                        Hundred20 = reader.GetInt32(6),
-                        Hundred80 = reader.GetInt32(7)
+                        DataSource = oldDbPath,
+                        Mode = SqliteOpenMode.ReadOnly
                     };
-                    await _repository.UpdateStatsAsync(playerStats);
-                }
 
-                await LoadDataAsync();
+                    await using var connection = new SqliteConnection(builder.ConnectionString);
+                    await connection.OpenAsync();
+
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT Name, Wins, Average, highestOut, sixty, hundred, hundred20, hundred80 FROM PlayerSettings";
+
+                    await using var reader = await command.ExecuteReaderAsync();
+
+                    int importedCount = 0;
+                    while (await reader.ReadAsync())
+                    {
+                        string name = reader.GetString(0);
+                        if (string.IsNullOrWhiteSpace(name)) continue;
+                        
+                        var newPlayer = await _repository.CreatePlayerAsync(name.Trim());
+                        if (newPlayer == null) continue;
+                        
+                        var playerStats = new PlayerStatsDto
+                        {
+                            PlayerId = newPlayer.Id,
+                            Year = DateTime.Now.Year,
+                            Wins = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                            Average = reader.IsDBNull(2) ? 0.0 : reader.GetDouble(2),
+                            HighestOut = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
+                            Sixty = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                            Hundred = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                            Hundred20 = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                            Hundred80 = reader.IsDBNull(7) ? 0 : reader.GetInt32(7)
+                        };
+                        await _repository.UpdateStatsAsync(playerStats);
+                        importedCount++;
+                    }
+
+                    await LoadDataAsync();
+
+                    await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
+                        "Info",
+                        $"Import byl úspěšně dokončen (naimportováno {importedCount} hráčů).",
+                        ButtonEnum.Ok, Icon.Info).ShowAsync();
+                }
+                catch (SqliteException ex)
+                {
+                    await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
+                        "Error",
+                        $"Chyba při čtení SQLite databáze: {ex.Message}",
+                        ButtonEnum.Ok, Icon.Error).ShowAsync();
+                }
+                catch (Exception ex)
+                {
+                    await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
+                        "Error",
+                        $"Chyba při importu: {ex.Message}",
+                        ButtonEnum.Ok, Icon.Error).ShowAsync();
+                }
             }
         }
     }

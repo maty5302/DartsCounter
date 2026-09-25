@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using DataLayer.Models;
 
 namespace DataLayer
@@ -28,6 +31,18 @@ namespace DataLayer
             var appFolder = Path.Combine(path, "DartsCounter");
             
             Directory.CreateDirectory(appFolder);
+            if (!OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    File.SetUnixFileMode(appFolder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                }
+                catch
+                {
+                    // Ignorujeme v případě souborového systému bez podpory POSIX práv
+                }
+            }
+
             return Path.Combine(appFolder, "Darts.db");
         }
 
@@ -35,7 +50,12 @@ namespace DataLayer
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite($"Data Source={dbPath}");
+                var connectionString = new SqliteConnectionStringBuilder
+                {
+                    DataSource = dbPath
+                }.ConnectionString;
+
+                optionsBuilder.UseSqlite(connectionString);
             }
         }
 
