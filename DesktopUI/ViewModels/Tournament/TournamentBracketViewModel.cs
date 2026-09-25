@@ -13,10 +13,10 @@ namespace DesktopUI.ViewModels.Tournament
         public void LoadTournament(Domain.Tournament tournament)
         {
             Rounds.Clear();
-            int totalPlayers = tournament.players.Count;
+            int totalPlayers = tournament.Players.Count;
             int totalRounds = (int)Math.Log2(totalPlayers);
 
-            var validMatches = tournament.allmatches.Where(m => m != null && m.Count > 0).ToList();
+            var validMatches = tournament.AllMatches.Where(m => m != null && m.Count > 0).ToList();
 
             for (int roundIndex = 0; roundIndex < totalRounds; roundIndex++)
             {
@@ -92,7 +92,7 @@ namespace DesktopUI.ViewModels.Tournament
         private string GetPlayerName(Domain.Tournament tournament, int playerId)
         {
             if (playerId == 0) return "?"; 
-            var player = tournament.players.FirstOrDefault(p => p.Id == playerId);
+            var player = tournament.Players.FirstOrDefault(p => p.Id == playerId);
             return player?.PlayerName ?? $"Hráč {playerId}";
         }
     }

@@ -320,7 +320,7 @@ public partial class MainViewModel : ViewModelBase
         {
             if (IsTournamentMode && ActiveTournament != null)
             {
-                var match = ActiveTournament.getNextMatch();
+                var match = ActiveTournament.GetNextMatch();
                 if (match != null)
                 {
                     match.WinnerId = winnerId;
@@ -340,18 +340,18 @@ public partial class MainViewModel : ViewModelBase
 
     private void PlayNextTournamentMatch()
     {
-        var nextMatch = ActiveTournament?.getNextMatch();
+        var nextMatch = ActiveTournament?.GetNextMatch();
         
         if (nextMatch == null)
         {
-            ActiveTournament?.generateNextRound();
-            nextMatch = ActiveTournament?.getNextMatch();
+            ActiveTournament?.GenerateNextRound();
+            nextMatch = ActiveTournament?.GetNextMatch();
         }
 
         if (nextMatch != null)
         {
-            var p1 = ActiveTournament!.players.FirstOrDefault(p => p.Id == nextMatch.Player1Id);
-            var p2 = ActiveTournament!.players.FirstOrDefault(p => p.Id == nextMatch.Player2Id);
+            var p1 = ActiveTournament!.Players.FirstOrDefault(p => p.Id == nextMatch.Player1Id);
+            var p2 = ActiveTournament!.Players.FirstOrDefault(p => p.Id == nextMatch.Player2Id);
 
             DuelVM.Is2V2Mode = false;
             DuelVM.Player1.PlayerId = nextMatch.Player1Id;
