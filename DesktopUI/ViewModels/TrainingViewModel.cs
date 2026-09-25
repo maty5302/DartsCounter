@@ -62,10 +62,7 @@ namespace DesktopUI.ViewModels
         
         private int ShuffleNumber()
         {
-            int number = 0;
-            Random random= new Random();
-            number = random.Next(1,21);
-            return number;
+            return Random.Shared.Next(1, 21);
         }
 
         private void GenerateNextTarget()
@@ -75,19 +72,17 @@ namespace DesktopUI.ViewModels
             else if (IsTripleMode) TargetDisplay = "T" + ShuffleNumber().ToString();
             else if (IsCheckoutMode)
             {
-                List<int> prohibited = new List<int>() { 159, 162, 163, 165, 166, 168, 169};
+                List<int> prohibited = new List<int>() { 159, 162, 163, 165, 166, 168, 169 };
 
-                Random r = new Random();
-                int check = r.Next(60, 171);
+                int check = Random.Shared.Next(60, 171);
                 while (prohibited.Contains(check))
-                    check = r.Next(60, 171);                   
+                    check = Random.Shared.Next(60, 171);                   
 
                 TargetDisplay = Checkout.checkout(check);
             }
             else
             {
-                Random r = new Random();
-                int v = r.Next(1, 4);
+                int v = Random.Shared.Next(1, 4);
                 switch (v)
                 {
                     case 1:

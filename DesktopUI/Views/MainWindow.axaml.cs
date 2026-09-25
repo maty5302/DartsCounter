@@ -31,7 +31,18 @@ public partial class MainWindow : Window
         base.OnClosing(e);
         if (_boundViewModel != null)
         {
+            _boundViewModel.Settings.PropertyChanged -= SettingsOnPropertyChanged;
             await SoundManagerDarts.SoundEffects.StopPlayer();
+        }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        if (_boundViewModel != null)
+        {
+            _boundViewModel.Settings.PropertyChanged -= SettingsOnPropertyChanged;
+            _boundViewModel = null;
         }
     }
     

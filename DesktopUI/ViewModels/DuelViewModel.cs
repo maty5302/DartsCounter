@@ -59,13 +59,7 @@ namespace DesktopUI.ViewModels
         public string WinnerName
         {
             get => field;
-            set
-            {
-                if (SetProperty(ref field, value))
-                {
-                    OnPropertyChanged(WinnerName);
-                }
-            }
+            set => SetProperty(ref field, value);
         }
         
         public bool Is2V2Mode { get; set; }
