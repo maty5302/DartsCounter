@@ -11,22 +11,26 @@ namespace DataLayer
         public DbSet<Player> Players { get; set; }
         public DbSet<YearlyStatistic> YearlyStatistics { get; set; }
         
-        private readonly string dbPath;
-
         public DartsDbContext() 
         { 
-            dbPath = GetDatabasePath();
         }
 
         public DartsDbContext(DbContextOptions<DartsDbContext> options) : base(options) 
         { 
-            dbPath = GetDatabasePath();
         }
 
-        private string GetDatabasePath()
+        private static string GetDatabasePath()
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            }
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Path.GetTempPath();
+            }
             
             var appFolder = Path.Combine(path, "DartsCounter");
             
@@ -52,7 +56,7 @@ namespace DataLayer
             {
                 var connectionString = new SqliteConnectionStringBuilder
                 {
-                    DataSource = dbPath
+                    DataSource = GetDatabasePath()
                 }.ConnectionString;
 
                 optionsBuilder.UseSqlite(connectionString);
