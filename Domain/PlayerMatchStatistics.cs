@@ -2,57 +2,38 @@ namespace Domain
 {
     public class PlayerMatchStatistics
     {
-        private readonly List<string> _history = new();
-        private readonly List<int> _throwValues = new();
-        private readonly List<int> _checkouts = new();
+        private readonly record struct ThrowRecord(string ScoreText, int ScoreValue, bool IsCheckout);
 
-        public double CurrentAverage => _throwValues.Count > 0 ? _throwValues.Average() : 0.0;
-        public bool IsEmpty => _history.Count == 0;
+        private readonly List<ThrowRecord> _throws = new();
+
+        public double CurrentAverage => _throws.Count > 0 ? _throws.Average(t => t.ScoreValue) : 0.0;
+        public bool IsEmpty => _throws.Count == 0;
         
-        public int Sixty => _throwValues.Count(v => v >= 60 && v < 100);
-        public int Hundred => _throwValues.Count(v => v >= 100 && v < 120);
-        public int Hundred20 => _throwValues.Count(v => v >= 120 && v < 180);
-        public int Hundred80 => _throwValues.Count(v => v == 180);
+        public int Sixty => _throws.Count(t => t.ScoreValue >= 60 && t.ScoreValue < 100);
+        public int Hundred => _throws.Count(t => t.ScoreValue >= 100 && t.ScoreValue < 120);
+        public int Hundred20 => _throws.Count(t => t.ScoreValue >= 120 && t.ScoreValue < 180);
+        public int Hundred80 => _throws.Count(t => t.ScoreValue == 180);
         
-        public int Wins => _checkouts.Count;
-        public int HighestOut => _checkouts.Count > 0 ? _checkouts.Max() : 0;
+        public int Wins => _throws.Count(t => t.IsCheckout);
+        public int HighestOut => _throws.Where(t => t.IsCheckout).Select(t => t.ScoreValue).DefaultIfEmpty(0).Max();
 
         public void AddThrow(string scoreText, int scoreValue, bool isCheckout = false)
         {
-            _history.Add(scoreText);
-            _throwValues.Add(scoreValue);
-            if (isCheckout)
-            {
-                _checkouts.Add(scoreValue);
-            }
+            _throws.Add(new ThrowRecord(scoreText, scoreValue, isCheckout));
         }
 
         public string? UndoLastThrow()
         {
-            if (_history.Count == 0) return null;
+            if (_throws.Count == 0) return null;
 
-            int lastValue = _throwValues.Last();
-            string lastScore = _history.Last();
-            _history.RemoveAt(_history.Count - 1);
-
-            if (_throwValues.Count > 0)
-            {
-                _throwValues.RemoveAt(_throwValues.Count - 1);
-            }
-            
-            if (_checkouts.Count > 0 && _checkouts.Last() == lastValue)
-            {
-                _checkouts.RemoveAt(_checkouts.Count - 1);
-            }
-
-            return lastScore;
+            var last = _throws.Last();
+            _throws.RemoveAt(_throws.Count - 1);
+            return last.ScoreText;
         }
 
         public void Clear()
         {
-            _history.Clear();
-            _throwValues.Clear();
-            _checkouts.Clear();
+            _throws.Clear();
         }
     }
 }

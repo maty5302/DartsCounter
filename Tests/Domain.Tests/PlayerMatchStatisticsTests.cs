@@ -81,5 +81,31 @@ namespace Domain.Tests
             var result = stats.UndoLastThrow();
             Assert.Null(result);
         }
+
+        [Fact]
+        public void UndoLastThrow_NormalThrowMatchingPreviousCheckout_ShouldNotRemoveCheckout()
+        {
+            var stats = new PlayerMatchStatistics();
+            stats.AddThrow("40", 40, isCheckout: true);
+            Assert.Equal(1, stats.Wins);
+            Assert.Equal(40, stats.HighestOut);
+
+            // Add normal throw with same score value
+            stats.AddThrow("40", 40, isCheckout: false);
+            Assert.Equal(1, stats.Wins);
+            Assert.Equal(40, stats.HighestOut);
+
+            // Undo the normal throw
+            var undone = stats.UndoLastThrow();
+            Assert.Equal("40", undone);
+            Assert.Equal(1, stats.Wins);
+            Assert.Equal(40, stats.HighestOut);
+
+            // Undo the checkout
+            var undoneCheckout = stats.UndoLastThrow();
+            Assert.Equal("40", undoneCheckout);
+            Assert.Equal(0, stats.Wins);
+            Assert.Equal(0, stats.HighestOut);
+        }
     }
 }
