@@ -33,7 +33,7 @@
                 WorkingDirectory="INSTALLFOLDER"
                 Icon="AppIcon" />
                 
-      <RegistryValue Root="HKCU" 
+      <RegistryValue Root="HKLM" 
                      Key="Software\MatejPrudil\DartsCounter" 
                      Name="DesktopShortcut" 
                      Type="integer" 
@@ -48,7 +48,7 @@
                 WorkingDirectory="INSTALLFOLDER"
                 Icon="AppIcon" />
                 
-      <RegistryValue Root="HKCU" 
+      <RegistryValue Root="HKLM" 
                      Key="Software\MatejPrudil\DartsCounter" 
                      Name="StartMenuShortcut" 
                      Type="integer" 
