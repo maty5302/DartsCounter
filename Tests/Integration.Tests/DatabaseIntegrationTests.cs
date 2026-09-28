@@ -121,5 +121,50 @@ namespace Integration.Tests
             Assert.Equal(11, retrievedStats.Wins);
             Assert.Equal(62.3, retrievedStats.Average);
         }
+
+        [Fact]
+        public async Task Duel_MultipleMatches_ShouldProperlyCalculateWeightedAverage()
+        {
+            var options = new DbContextOptionsBuilder<DartsDbContext>()
+                .UseInMemoryDatabase(databaseName: $"IntegrationDB_WeightedAvg_{Guid.NewGuid()}")
+                .Options;
+            var repository = new DartsRepository(options);
+
+            var player = await repository.CreatePlayerAsync("Matematik");
+
+            int year = DateTime.Now.Year;
+            var record = await repository.GetStatsForYearAsync(player.Id, year) ?? new PlayerStatsDto
+            {
+                PlayerId = player.Id,
+                Year = year
+            };
+
+            // First game: avg 60.0
+            record.Average = 60.0;
+            record.MatchesPlayed = 1;
+            await repository.UpdateStatsAsync(record);
+
+            // Second game: avg 80.0
+            int prevMatches = record.MatchesPlayed;
+            record.Average = Math.Round(((record.Average * prevMatches) + 80.0) / (prevMatches + 1), 2);
+            record.MatchesPlayed = prevMatches + 1;
+            await repository.UpdateStatsAsync(record);
+
+            var check2 = await repository.GetStatsForYearAsync(player.Id, year);
+            Assert.NotNull(check2);
+            Assert.Equal(70.0, check2.Average);
+            Assert.Equal(2, check2.MatchesPlayed);
+
+            // Third game: avg 40.0
+            prevMatches = check2.MatchesPlayed;
+            record.Average = Math.Round(((check2.Average * prevMatches) + 40.0) / (prevMatches + 1), 2);
+            record.MatchesPlayed = prevMatches + 1;
+            await repository.UpdateStatsAsync(record);
+
+            var check3 = await repository.GetStatsForYearAsync(player.Id, year);
+            Assert.NotNull(check3);
+            Assert.Equal(60.0, check3.Average); // NOT 55.0!
+            Assert.Equal(3, check3.MatchesPlayed);
+        }
     }
 }

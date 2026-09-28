@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
@@ -83,7 +84,7 @@ namespace DesktopUI.ViewModels
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    await DownloadWindowsInstaller(Path.GetTempPath() + "DartsCounter.msi", progress, _cancellationTokenSource.Token);
+                    await DownloadWindowsInstaller(progress, _cancellationTokenSource.Token);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
@@ -91,7 +92,7 @@ namespace DesktopUI.ViewModels
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    await DownloadMacOsInstaller(Path.GetTempPath() + "DartsCounter.dmg", progress, _cancellationTokenSource.Token);
+                    await DownloadMacOsInstaller(progress, _cancellationTokenSource.Token);
                 }
             }
             catch (OperationCanceledException)
@@ -107,6 +108,45 @@ namespace DesktopUI.ViewModels
                 CloseAction?.Invoke();
             }
         }
+
+        private static string CreateSecureTempDirectory()
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), "DartsCounterUpdate_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+            return tempDir;
+        }
+
+        private static async Task<bool> VerifyFileChecksumAsync(string filePath, string checksumUrl, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var response = await _httpClient.GetAsync(checksumUrl, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return false;
+                }
+
+                string rawChecksum = await response.Content.ReadAsStringAsync(cancellationToken);
+                var tokens = rawChecksum.Trim().Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                if (tokens.Length == 0)
+                {
+                    return false;
+                }
+                string expectedHash = tokens[0];
+
+                using var sha256 = SHA256.Create();
+                await using var stream = File.OpenRead(filePath);
+                byte[] hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
+                string computedHash = Convert.ToHexString(hashBytes);
+
+                return string.Equals(computedHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private async Task DownloadFileWithProgressAsync(string url, string destinationPath, IProgress<(double, long, long)> progress, CancellationToken cancellationToken)
         {
             using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -142,11 +182,23 @@ namespace DesktopUI.ViewModels
             }
         }
 
-        private async Task DownloadWindowsInstaller(string filePath, IProgress<(double, long, long)> progress, CancellationToken token)
+        private async Task DownloadWindowsInstaller(IProgress<(double, long, long)> progress, CancellationToken token)
         {
+            string tempDir = CreateSecureTempDirectory();
+            string filePath = Path.Combine(tempDir, "DartsCounter.msi");
+            const string downloadUrl = "https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.msi";
+            const string checksumUrl = "https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.msi.sha256";
+
             try
             {
-                await DownloadFileWithProgressAsync("https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.msi", filePath, progress, token);
+                await DownloadFileWithProgressAsync(downloadUrl, filePath, progress, token);
+
+                bool isChecksumValid = await VerifyFileChecksumAsync(filePath, checksumUrl, token);
+                if (!isChecksumValid)
+                {
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                    throw new InvalidOperationException("Chyba ověření integrity: Kontrolní součet SHA-256 neodpovídá.");
+                }
                 
                 var processInfo = new ProcessStartInfo()
                 {
@@ -159,7 +211,12 @@ namespace DesktopUI.ViewModels
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-               await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
+                if (File.Exists(filePath))
+                {
+                    try { File.Delete(filePath); } catch { }
+                }
+
+                await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
                     "Error",
                     ex.Message, ButtonEnum.Ok, Icon.Error).ShowAsync();
             }
@@ -167,23 +224,37 @@ namespace DesktopUI.ViewModels
 
         private async Task DownloadLinuxAppImage(string defaultFilePath, IProgress<(double, long, long)> progress, CancellationToken token)
         {
+            string tempDir = CreateSecureTempDirectory();
+            string tempPath = Path.Combine(tempDir, "DartsCounter.AppImage.download");
+            const string downloadUrl = "https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.AppImage";
+            const string checksumUrl = "https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.AppImage.sha256";
+
             try
             {
                 string? currentAppImagePath = Environment.GetEnvironmentVariable("APPIMAGE");
                 string targetPath;
 
-                if (!string.IsNullOrEmpty(currentAppImagePath))
+                if (!string.IsNullOrWhiteSpace(currentAppImagePath) &&
+                    Path.IsPathRooted(currentAppImagePath) &&
+                    File.Exists(currentAppImagePath))
                 {
                     targetPath = currentAppImagePath;
                 }
                 else
                 {
-                    targetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", defaultFilePath);
+                    string downloadsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+                    Directory.CreateDirectory(downloadsDir);
+                    targetPath = Path.Combine(downloadsDir, defaultFilePath);
                 }
 
-                string tempPath = targetPath + ".temp";
+                await DownloadFileWithProgressAsync(downloadUrl, tempPath, progress, token);
 
-                await DownloadFileWithProgressAsync("https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.AppImage", tempPath, progress, token);
+                bool isChecksumValid = await VerifyFileChecksumAsync(tempPath, checksumUrl, token);
+                if (!isChecksumValid)
+                {
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                    throw new InvalidOperationException("Chyba ověření integrity: Kontrolní součet SHA-256 neodpovídá.");
+                }
                 
                 if (File.Exists(targetPath))
                 {
@@ -191,14 +262,15 @@ namespace DesktopUI.ViewModels
                 }
                 File.Move(tempPath, targetPath);
 
-                Process.Start(new ProcessStartInfo
+                // Nativní bezpečné nastavení spustitelných práv bez volání externího shellu (bash -c)
+                if (!OperatingSystem.IsWindows())
                 {
-                    FileName = "bash",
-                    Arguments = $"-c \"chmod +x '{targetPath}'\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                })?.WaitForExit();
-                
+                    File.SetUnixFileMode(targetPath,
+                        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                        UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                        UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+                }
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = targetPath,
@@ -209,17 +281,45 @@ namespace DesktopUI.ViewModels
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                if (File.Exists(tempPath))
+                {
+                    try { File.Delete(tempPath); } catch { }
+                }
+
                 await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
                     "Error",
                     ex.Message, ButtonEnum.Ok, Icon.Error).ShowAsync();
             }
+            finally
+            {
+                try
+                {
+                    if (Directory.Exists(tempDir))
+                    {
+                        Directory.Delete(tempDir, true);
+                    }
+                }
+                catch { }
+            }
         }
 
-        private async Task DownloadMacOsInstaller(string filePath, IProgress<(double, long, long)> progress, CancellationToken token)
+        private async Task DownloadMacOsInstaller(IProgress<(double, long, long)> progress, CancellationToken token)
         {
+            string tempDir = CreateSecureTempDirectory();
+            string filePath = Path.Combine(tempDir, "DartsCounter.dmg");
+            const string downloadUrl = "https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.dmg";
+            const string checksumUrl = "https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.dmg.sha256";
+
             try
             {
-                await DownloadFileWithProgressAsync("https://github.com/maty5302/DartsCounter/releases/latest/download/DartsCounter.dmg", filePath, progress, token);
+                await DownloadFileWithProgressAsync(downloadUrl, filePath, progress, token);
+
+                bool isChecksumValid = await VerifyFileChecksumAsync(filePath, checksumUrl, token);
+                if (!isChecksumValid)
+                {
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                    throw new InvalidOperationException("Chyba ověření integrity: Kontrolní součet SHA-256 neodpovídá.");
+                }
                 
                 Process.Start(new ProcessStartInfo
                 {
@@ -231,6 +331,11 @@ namespace DesktopUI.ViewModels
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                if (File.Exists(filePath))
+                {
+                    try { File.Delete(filePath); } catch { }
+                }
+
                 await MsBox.Avalonia.MessageBoxManager.GetMessageBoxStandard(
                     "Error",
                     ex.Message, ButtonEnum.Ok, Icon.Error).ShowAsync();

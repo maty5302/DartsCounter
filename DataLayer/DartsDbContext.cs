@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using DataLayer.Models;
 
 namespace DataLayer
@@ -8,26 +11,42 @@ namespace DataLayer
         public DbSet<Player> Players { get; set; }
         public DbSet<YearlyStatistic> YearlyStatistics { get; set; }
         
-        private readonly string dbPath;
-
         public DartsDbContext() 
         { 
-            dbPath = GetDatabasePath();
         }
 
         public DartsDbContext(DbContextOptions<DartsDbContext> options) : base(options) 
         { 
-            dbPath = GetDatabasePath();
         }
 
-        private string GetDatabasePath()
+        private static string GetDatabasePath()
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            }
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Path.GetTempPath();
+            }
             
             var appFolder = Path.Combine(path, "DartsCounter");
             
             Directory.CreateDirectory(appFolder);
+            if (!OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    File.SetUnixFileMode(appFolder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                }
+                catch
+                {
+                    // Ignorujeme v případě souborového systému bez podpory POSIX práv
+                }
+            }
+
             return Path.Combine(appFolder, "Darts.db");
         }
 
@@ -35,7 +54,12 @@ namespace DataLayer
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite($"Data Source={dbPath}");
+                var connectionString = new SqliteConnectionStringBuilder
+                {
+                    DataSource = GetDatabasePath()
+                }.ConnectionString;
+
+                optionsBuilder.UseSqlite(connectionString);
             }
         }
 

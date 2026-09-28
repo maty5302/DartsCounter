@@ -9,19 +9,12 @@ namespace Domain.Models
     
         // Aktuální rok
         public int Wins { get; set; }
+        public int MatchesPlayed { get; set; }
         public double Average { get; set; }
         public int HighestOut { get; set; }
         public int Sixty { get; set; }
         public int Hundred { get; set; }
         public int Hundred20 { get; set; }
         public int Hundred80 { get; set; }
-    
-        // Historické statistiky
-        public int AllWins { get; set; }
-        public int OldHighestOut { get; set; }
-        public int AllSixty { get; set; }
-        public int AllHundred { get; set; }
-        public int AllHundred20 { get; set; }
-        public int AllHundred80 { get; set; }
     }
 }

@@ -59,13 +59,7 @@ namespace DesktopUI.ViewModels
         public string WinnerName
         {
             get => field;
-            set
-            {
-                if (SetProperty(ref field, value))
-                {
-                    OnPropertyChanged(WinnerName);
-                }
-            }
+            set => SetProperty(ref field, value);
         }
         
         public bool Is2V2Mode { get; set; }
@@ -385,14 +379,20 @@ namespace DesktopUI.ViewModels
                     stats.HighestOut = matchStats.HighestOut;
                 }
 
-                if (stats.Average == 0)
+                int previousMatches = stats.MatchesPlayed > 0
+                    ? stats.MatchesPlayed
+                    : (stats.Average > 0 ? Math.Max(1, stats.Wins) : 0);
+
+                if (previousMatches == 0)
                 {
-                    stats.Average = matchStats.CurrentAverage;
+                    stats.Average = Math.Round(matchStats.CurrentAverage, 2);
                 }
                 else
                 {
-                    stats.Average = (stats.Average + matchStats.CurrentAverage) / 2.0;
+                    stats.Average = Math.Round(((stats.Average * previousMatches) + matchStats.CurrentAverage) / (previousMatches + 1), 2);
                 }
+
+                stats.MatchesPlayed = previousMatches + 1;
             }
 
             await _repo.UpdateStatsAsync(stats);

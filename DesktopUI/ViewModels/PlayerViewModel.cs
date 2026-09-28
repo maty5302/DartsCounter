@@ -163,7 +163,8 @@ namespace DesktopUI.ViewModels
                                 PlayerId = realDbId,
                                 Year = currentYear,
                                 Wins = 1,
-                                Average = MatchStats.CurrentAverage,
+                                MatchesPlayed = 1,
+                                Average = Math.Round(MatchStats.CurrentAverage, 2),
                                 HighestOut = MatchStats.HighestOut,
                                 Sixty = MatchStats.Sixty,
                                 Hundred = MatchStats.Hundred,
@@ -185,7 +186,20 @@ namespace DesktopUI.ViewModels
                             existingStats.Hundred20 += MatchStats.Hundred20;
                             existingStats.Hundred80 += MatchStats.Hundred80;
                             
-                            existingStats.Average = (existingStats.Average + MatchStats.CurrentAverage) / 2.0; 
+                            int previousMatches = existingStats.MatchesPlayed > 0
+                                ? existingStats.MatchesPlayed
+                                : (existingStats.Average > 0 ? Math.Max(1, existingStats.Wins) : 0);
+
+                            if (previousMatches == 0)
+                            {
+                                existingStats.Average = Math.Round(MatchStats.CurrentAverage, 2);
+                            }
+                            else
+                            {
+                                existingStats.Average = Math.Round(((existingStats.Average * previousMatches) + MatchStats.CurrentAverage) / (previousMatches + 1), 2);
+                            }
+
+                            existingStats.MatchesPlayed = previousMatches + 1;
                         }
                         
                         await _repository.UpdateStatsAsync(existingStats);
