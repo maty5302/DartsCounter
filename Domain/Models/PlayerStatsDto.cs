@@ -9,6 +9,7 @@ namespace Domain.Models
     
         // Aktuální rok
         public int Wins { get; set; }
+        public int MatchesPlayed { get; set; }
         public double Average { get; set; }
         public int HighestOut { get; set; }
         public int Sixty { get; set; }

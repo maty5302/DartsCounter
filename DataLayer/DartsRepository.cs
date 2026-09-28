@@ -15,12 +15,51 @@ public class DartsRepository : IDartsRepository
     {
         using var context = new DartsDbContext();
         context.Database.EnsureCreated();
+        EnsureDatabaseSchema(context);
     }
     public DartsRepository(DbContextOptions<DartsDbContext> testOptions)
     {
         _testOptions = testOptions;
         using var context = CreateContext();
         context.Database.EnsureCreated();
+        EnsureDatabaseSchema(context);
+    }
+
+    private static void EnsureDatabaseSchema(DartsDbContext context)
+    {
+        try
+        {
+            if (context.Database.IsSqlite())
+            {
+                using var conn = context.Database.GetDbConnection();
+                conn.Open();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "PRAGMA table_info(YearlyStatistics);";
+                using var reader = cmd.ExecuteReader();
+                bool hasMatchesPlayed = false;
+                while (reader.Read())
+                {
+                    var colName = reader["name"]?.ToString();
+                    if (string.Equals(colName, "MatchesPlayed", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasMatchesPlayed = true;
+                        break;
+                    }
+                }
+                reader.Close();
+
+                if (!hasMatchesPlayed)
+                {
+                    using var alterCmd = conn.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE YearlyStatistics ADD COLUMN MatchesPlayed INTEGER NOT NULL DEFAULT 0;";
+                    alterCmd.ExecuteNonQuery();
+                }
+            }
+        }
+        catch
+        {
+            // Ignore schema migration issues for in-memory or already migrated dbs
+        }
     }
     private DartsDbContext CreateContext()
     {
@@ -122,6 +161,7 @@ public class DartsRepository : IDartsRepository
             PlayerId = stats.PlayerId,
             Year = stats.Year,
             Wins = stats.Wins,
+            MatchesPlayed = stats.MatchesPlayed,
             Average = stats.Average,
             HighestOut = stats.HighestOut,
             Sixty = stats.Sixty,
@@ -145,6 +185,7 @@ public class DartsRepository : IDartsRepository
                 PlayerId = statsDto.PlayerId, 
                 Year = statsDto.Year,
                 Wins = statsDto.Wins,
+                MatchesPlayed = statsDto.MatchesPlayed,
                 Average = statsDto.Average,
                 HighestOut = statsDto.HighestOut,
                 Sixty = statsDto.Sixty,
@@ -157,6 +198,7 @@ public class DartsRepository : IDartsRepository
         else
         {
             existing.Wins = statsDto.Wins;
+            existing.MatchesPlayed = statsDto.MatchesPlayed;
             existing.Average = statsDto.Average;
             existing.HighestOut = statsDto.HighestOut;
             existing.Sixty = statsDto.Sixty;

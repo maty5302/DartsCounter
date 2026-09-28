@@ -183,6 +183,9 @@
     <data name="StatisticsRename" xml:space="preserve">
         <value>_StatisticsRename</value>
     </data>
+    <data name="StatisticsMatchesCount" xml:space="preserve">
+        <value>_StatisticsMatchesCount</value>
+    </data>
     <data name="StatisticsVictoryCount" xml:space="preserve">
         <value>_StatisticsVictoryCount</value>
     </data>

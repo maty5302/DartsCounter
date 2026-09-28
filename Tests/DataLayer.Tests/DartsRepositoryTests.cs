@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -140,6 +140,7 @@ namespace DataLayer.Tests
                 PlayerId = player.Id,
                 Year = 2024,
                 Wins = 5,
+                MatchesPlayed = 6,
                 Average = 45.5
             };
 
@@ -148,6 +149,7 @@ namespace DataLayer.Tests
             var savedStats = await repository.GetStatsForYearAsync(player.Id, 2024);
             Assert.NotNull(savedStats);
             Assert.Equal(5, savedStats.Wins);
+            Assert.Equal(6, savedStats.MatchesPlayed);
             Assert.Equal(45.5, savedStats.Average);
         }
 
@@ -159,15 +161,16 @@ namespace DataLayer.Tests
             var player = await repository.CreatePlayerAsync("Hráč Pro Aktualizaci");
             Assert.NotNull(player);
 
-            var initialStats = new PlayerStatsDto { PlayerId = player.Id, Year = 2024, Wins = 2 };
+            var initialStats = new PlayerStatsDto { PlayerId = player.Id, Year = 2024, Wins = 2, MatchesPlayed = 2 };
             await repository.UpdateStatsAsync(initialStats); 
 
-            var updatedStats = new PlayerStatsDto { PlayerId = player.Id, Year = 2024, Wins = 10, Average = 60.0 };
+            var updatedStats = new PlayerStatsDto { PlayerId = player.Id, Year = 2024, Wins = 10, MatchesPlayed = 12, Average = 60.0 };
             await repository.UpdateStatsAsync(updatedStats); 
 
             var savedStats = await repository.GetStatsForYearAsync(player.Id, 2024);
             Assert.NotNull(savedStats);
             Assert.Equal(10, savedStats.Wins);
+            Assert.Equal(12, savedStats.MatchesPlayed);
             Assert.Equal(60.0, savedStats.Average);
         }
 

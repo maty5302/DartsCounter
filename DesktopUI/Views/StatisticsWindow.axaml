@@ -103,6 +103,9 @@
 
                         <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Center">
                                     
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static lang:Strings.StatisticsMatchesCount}" Classes="StatLabel"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MatchesPlayed}" Classes="StatValue"/>
+
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static lang:Strings.StatisticsVictoryCount}" Classes="StatLabel"/>
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Wins}" Classes="StatValue"/>
 

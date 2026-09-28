@@ -30,6 +30,7 @@ public partial class StatisticsViewModel : ObservableObject
     [ObservableProperty] private string _renamePlayerName = string.Empty;
 
     [ObservableProperty] private int _wins;
+    [ObservableProperty] private int _matchesPlayed;
     [ObservableProperty] private double _average;
     [ObservableProperty] private int _highestOut;
     [ObservableProperty] private int _sixty;
@@ -158,6 +159,7 @@ public partial class StatisticsViewModel : ObservableObject
         if (stats != null)
         {
             Wins = stats.Wins;
+            MatchesPlayed = stats.MatchesPlayed;
             Average = stats.Average;
             HighestOut = stats.HighestOut;
             Sixty = stats.Sixty;
@@ -167,7 +169,7 @@ public partial class StatisticsViewModel : ObservableObject
         }
         else
         {
-            Wins = 0; Average = 0; HighestOut = 0; Sixty = 0; Hundred = 0; Hundred20 = 0; Hundred80 = 0;
+            Wins = 0; MatchesPlayed = 0; Average = 0; HighestOut = 0; Sixty = 0; Hundred = 0; Hundred20 = 0; Hundred80 = 0;
         }
         
         UpdateAchievements();

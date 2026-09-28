@@ -176,6 +176,9 @@
     <data name="StatisticsRename" xml:space="preserve">
         <value>Přejmenovat</value>
     </data>
+    <data name="StatisticsMatchesCount" xml:space="preserve">
+        <value>Počet zápasů:</value>
+    </data>
     <data name="StatisticsVictoryCount" xml:space="preserve">
         <value>Počet vítězství:</value>
     </data>
