@@ -26,8 +26,14 @@ namespace DesktopUI.ViewModels
             try
             {
                 Version? version = Assembly.GetEntryAssembly()?.GetName().Version;
-                string versionText = version?.ToString() ?? "1.0.0.0";
+                string versionText = version?.ToString() ?? "2.0.0";
                 
+                //remove last .0 if present
+                if (versionText.EndsWith(".0"))
+                {
+                    versionText = versionText.Substring(0, versionText.Length - 2);
+                }
+
                 AppVersion = $"{Strings.AppVersion} {versionText}";
                 ReleaseNotes = await GithubIntegration.GetReleaseNotes($"v{versionText}");
             }
