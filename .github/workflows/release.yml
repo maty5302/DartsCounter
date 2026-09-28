@@ -101,7 +101,11 @@ jobs:
 
       - name: Vytvoření AppImage
         run: |
-          wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage"
+          APPIMAGETOOL_SHA256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+          
+          wget -O appimagetool "$APPIMAGETOOL_URL"
+          echo "$APPIMAGETOOL_SHA256  appimagetool" | sha256sum --check --status
           chmod +x appimagetool
           ./appimagetool --appimage-extract-and-run AppDir DartsCounter.AppImage
 
