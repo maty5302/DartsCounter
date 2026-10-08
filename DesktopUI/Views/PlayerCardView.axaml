@@ -4,8 +4,30 @@
              x:Class="DesktopUI.Views.PlayerCardView"
              x:DataType="vm:PlayerViewModel">
     
-    <Border Background="{Binding CardBackground}" CornerRadius="2" Margin="10" Padding="10" 
-            BorderBrush="DarkGreen" BorderThickness="1" Opacity="{Binding OpacityPlayerCard}">
+    <UserControl.Styles>
+        <Style Selector="Border.playerCard">
+            <Setter Property="BorderBrush" Value="#1B5E20"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BoxShadow" Value="0 2 6 0 #20000000"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.25"/>
+                    <ThicknessTransition Property="BorderThickness" Duration="0:0:0.25"/>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.25"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.playerCard.active">
+            <Setter Property="BorderBrush" Value="#FFD700"/>
+            <Setter Property="BorderThickness" Value="3.5"/>
+            <Setter Property="BoxShadow" Value="0 0 16 3 #AAFFD700, 0 4 12 0 #40000000"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="playerCard" Classes.active="{Binding IsActive}"
+            Background="{Binding CardBackground}" Margin="10" Padding="10" 
+            Opacity="{Binding OpacityPlayerCard}">
         <Grid RowDefinitions="Auto,*,Auto,Auto">
             <TextBlock Grid.Row="0" Text="{Binding Name}" FontStyle="Italic" FontSize="16" Foreground="Black"/>
             

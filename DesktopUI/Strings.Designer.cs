@@ -657,30 +657,60 @@ namespace DesktopUI {
             }
         }
         
+        public static string AchCupTitle {
+            get {
+                return ResourceManager.GetString("AchCupTitle", resourceCulture);
+            }
+        }
+
         public static string AchCupImage {
             get {
                 return ResourceManager.GetString("AchCupImage", resourceCulture);
             }
         }
         
+        public static string AchCup20Title {
+            get {
+                return ResourceManager.GetString("AchCup20Title", resourceCulture);
+            }
+        }
+
         public static string AchCup20Image {
             get {
                 return ResourceManager.GetString("AchCup20Image", resourceCulture);
             }
         }
         
+        public static string AchCup100Title {
+            get {
+                return ResourceManager.GetString("AchCup100Title", resourceCulture);
+            }
+        }
+
         public static string AchCup100Image {
             get {
                 return ResourceManager.GetString("AchCup100Image", resourceCulture);
             }
         }
         
+        public static string AchMore100Title {
+            get {
+                return ResourceManager.GetString("AchMore100Title", resourceCulture);
+            }
+        }
+
         public static string AchMore100Image {
             get {
                 return ResourceManager.GetString("AchMore100Image", resourceCulture);
             }
         }
         
+        public static string Ach180Title {
+            get {
+                return ResourceManager.GetString("Ach180Title", resourceCulture);
+            }
+        }
+
         public static string Ach180Image {
             get {
                 return ResourceManager.GetString("Ach180Image", resourceCulture);
