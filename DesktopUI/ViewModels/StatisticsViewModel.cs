@@ -43,11 +43,19 @@ public partial class StatisticsViewModel : ObservableObject
     [ObservableProperty] private Bitmap? _achCup100Image;
     [ObservableProperty] private Bitmap? _ach180Image;
     [ObservableProperty] private Bitmap? _achMore100Image;
+
+    [ObservableProperty] private bool _achCupUnlocked;
+    [ObservableProperty] private bool _achCup20Unlocked;
+    [ObservableProperty] private bool _achCup100Unlocked;
+    [ObservableProperty] private bool _achMore100Unlocked;
+    [ObservableProperty] private bool _ach180Unlocked;
+
     [ObservableProperty] private ObservableCollection<int> _availableYears = new();
 
     public StatisticsViewModel(IDartsRepository repository)
     {
         _repository = repository;
+        UpdateAchievements();
         _ = LoadDataAsync();
     }
 
@@ -174,40 +182,57 @@ public partial class StatisticsViewModel : ObservableObject
         
         UpdateAchievements();
     }
+    private static readonly System.Collections.Generic.Dictionary<string, Bitmap> _bitmapCache = new();
+
     private Bitmap? LoadImage(string uriString)
     {
+        if (_bitmapCache.TryGetValue(uriString, out var cached))
+        {
+            return cached;
+        }
+
         try
         {
-            using var stream = AssetLoader.Open(new Uri(uriString));
-            return new Bitmap(stream);
+            var uri = new Uri(uriString);
+            using var stream = AssetLoader.Open(uri);
+            var bitmap = new Bitmap(stream);
+            _bitmapCache[uriString] = bitmap;
+            return bitmap;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Failed to load achievement image: {uriString}, error: {ex.Message}");
             return null;
         }
     }
 
     private void UpdateAchievements()
     {
-        AchCupImage = LoadImage(Wins >= 1 
+        AchCupUnlocked = Wins >= 1;
+        AchCup20Unlocked = Wins >= 20;
+        AchCup100Unlocked = Wins >= 100;
+        AchMore100Unlocked = HighestOut >= 100;
+        Ach180Unlocked = Hundred80 >= 1;
+
+        AchCupImage = LoadImage(AchCupUnlocked 
             ? "avares://DartsCounter/Assets/Achievements/a_cup.jpg" 
             : "avares://DartsCounter/Assets/Achievements/a_cup_no.jpg");
             
-        AchCup20Image = LoadImage(Wins >= 20 
+        AchCup20Image = LoadImage(AchCup20Unlocked 
             ? "avares://DartsCounter/Assets/Achievements/a_cup_20.jpg" 
             : "avares://DartsCounter/Assets/Achievements/a_cup_20_no.jpg");
             
-        AchCup100Image = LoadImage(Wins >= 100 
+        AchCup100Image = LoadImage(AchCup100Unlocked 
             ? "avares://DartsCounter/Assets/Achievements/a_cup_100.jpg" 
             : "avares://DartsCounter/Assets/Achievements/a_cup_100_no.jpg");
             
-        Ach180Image = LoadImage(Hundred80 >= 1 
-            ? "avares://DartsCounter/Assets/Achievements/a_180.png" 
-            : "avares://DartsCounter/Assets/Achievements/a_180_no.png");
-            
-        AchMore100Image = LoadImage(Hundred >= 1 
+        AchMore100Image = LoadImage(AchMore100Unlocked 
             ? "avares://DartsCounter/Assets/Achievements/a_more100.png" 
             : "avares://DartsCounter/Assets/Achievements/a_more100_no.png");
+
+        Ach180Image = LoadImage(Ach180Unlocked 
+            ? "avares://DartsCounter/Assets/Achievements/a_180.png" 
+            : "avares://DartsCounter/Assets/Achievements/a_180_no.png");
     }
     
     [RelayCommand]

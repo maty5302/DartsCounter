@@ -317,17 +317,32 @@
     <data name="StatisticsAchievements" xml:space="preserve">
         <value>Achievements</value>
     </data>
+    <data name="AchCupTitle" xml:space="preserve">
+        <value>Sweet Victory</value>
+    </data>
     <data name="AchCupImage" xml:space="preserve">
         <value>Win at least one match</value>
+    </data>
+    <data name="AchCup20Title" xml:space="preserve">
+        <value>Career Start</value>
     </data>
     <data name="AchCup20Image" xml:space="preserve">
         <value>Win 20 matches</value>
     </data>
+    <data name="AchCup100Title" xml:space="preserve">
+        <value>Future Pro</value>
+    </data>
     <data name="AchCup100Image" xml:space="preserve">
         <value>Win 100 matches</value>
     </data>
+    <data name="AchMore100Title" xml:space="preserve">
+        <value>Darts Expert</value>
+    </data>
     <data name="AchMore100Image" xml:space="preserve">
         <value>Close out with at least a hundred points or more</value>
+    </data>
+    <data name="Ach180Title" xml:space="preserve">
+        <value>Maximum!</value>
     </data>
     <data name="Ach180Image" xml:space="preserve">
         <value>Throw a maximum (180)</value>

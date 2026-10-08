@@ -317,20 +317,35 @@
     <data name="StatisticsAchievements" xml:space="preserve">
         <value>Úspěchy</value>
     </data>
+    <data name="AchCupTitle" xml:space="preserve">
+        <value>Sladké vítězství</value>
+    </data>
     <data name="AchCupImage" xml:space="preserve">
         <value>Vyhraj aspoň jeden zápas</value>
+    </data>
+    <data name="AchCup20Title" xml:space="preserve">
+        <value>Začátek kariéry</value>
     </data>
     <data name="AchCup20Image" xml:space="preserve">
         <value>Vyhraj 20 zápasů</value>
     </data>
+    <data name="AchCup100Title" xml:space="preserve">
+        <value>Budoucí profesionál</value>
+    </data>
     <data name="AchCup100Image" xml:space="preserve">
         <value>Vyhraj 100 zápasů</value>
+    </data>
+    <data name="AchMore100Title" xml:space="preserve">
+        <value>Expert na šipky</value>
     </data>
     <data name="AchMore100Image" xml:space="preserve">
         <value>Zavři aspoň sto a více body</value>
     </data>
+    <data name="Ach180Title" xml:space="preserve">
+        <value>Má první 180!</value>
+    </data>
     <data name="Ach180Image" xml:space="preserve">
-        <value>Hod' maximum (180)</value>
+        <value>Hoď maximum (180)</value>
     </data>
     <data name="ToolTipToggleTimer" xml:space="preserve">
         <value>Skrýt/Zobrazit časovač</value>
