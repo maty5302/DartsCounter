@@ -322,22 +322,37 @@
         <value>_InternetNot</value>
     </data>
     <data name="StatisticsAchievements" xml:space="preserve">
-        <value>_StatisticsAchievements</value>
+        <value>Achievements</value>
+    </data>
+    <data name="AchCupTitle" xml:space="preserve">
+        <value>Sweet Victory</value>
     </data>
     <data name="AchCupImage" xml:space="preserve">
-        <value>_AchCupImage</value>
+        <value>Win at least one match</value>
+    </data>
+    <data name="AchCup20Title" xml:space="preserve">
+        <value>Career Start</value>
     </data>
     <data name="AchCup20Image" xml:space="preserve">
-        <value>_AchCup20Image</value>
+        <value>Win 20 matches</value>
+    </data>
+    <data name="AchCup100Title" xml:space="preserve">
+        <value>Future Pro</value>
     </data>
     <data name="AchCup100Image" xml:space="preserve">
-        <value>_AchCup100Image</value>
+        <value>Win 100 matches</value>
+    </data>
+    <data name="AchMore100Title" xml:space="preserve">
+        <value>Darts Expert</value>
     </data>
     <data name="AchMore100Image" xml:space="preserve">
-        <value>_AchMore100Image</value>
+        <value>Close out with at least 100 points</value>
+    </data>
+    <data name="Ach180Title" xml:space="preserve">
+        <value>Maximum!</value>
     </data>
     <data name="Ach180Image" xml:space="preserve">
-        <value>_Ach180Image</value>
+        <value>Throw a maximum (180)</value>
     </data>
     <data name="ToolTipToggleTimer" xml:space="preserve">
         <value>_ToolTipToggleTimer</value>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
@@ -6,9 +6,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AssemblyName>DartsCounter</AssemblyName>
         <PackageId>DartsCounter</PackageId>
-        <Version>2.0.1</Version>
         <Title>Darts Counter</Title>
-        <Authors>Matěj Prudil</Authors>
     </PropertyGroup>
 
     <ItemGroup>
